@@ -1,4 +1,4 @@
-# Project: youtrack-proxy
+# Project: jira-youtrack-proxy
 
 ## Overview
 
@@ -74,9 +74,3 @@ Used throughout handlers, service converters, boards, and filters. When encoding
 4. Add the handler in `internal/handler/` — use the existing file for that resource area or create a new one.
 5. Register the route in `main.go` under the appropriate API group.
 6. If the endpoint returns Jira-style numeric IDs, use `idmap.Encode` / `idmap.Decode`.
-
-## Documentation
-
-- When a change adds, removes, or modifies environment variables, endpoints, authentication behavior, or any other user-facing surface, update `README.md` to reflect the change.
-- Keep the Environment Variables table, API Surface table, Authentication section, and any other relevant README sections in sync with the code.
-- README updates are part of the implementation, not a follow-up task.

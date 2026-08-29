@@ -50,10 +50,10 @@ docker compose up --build
 Or standalone:
 
 ```sh
-docker build -t youtrack-proxy .
+docker build -t jira-youtrack-proxy .
 docker run -p 8080:8080 \
   -e YOUTRACK_URL=https://your-instance.youtrack.cloud \
-  youtrack-proxy
+  jira-youtrack-proxy
 ```
 
 ## CI
@@ -79,3 +79,7 @@ GitHub Actions workflow (`.github/workflows/build-and-push.yml`) runs on push to
 curl http://localhost:8080/health
 # => OK
 ```
+
+## Git Remote
+
+The canonical remote is `origin` → `https://github.com/hjertmann/youtrack-proxy.git`. Always push to `origin`. Do not create or use other remotes.
