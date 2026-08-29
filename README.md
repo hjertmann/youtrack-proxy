@@ -34,15 +34,18 @@ The proxy listens on `http://localhost:8080`. Point DevLake's Jira connection at
 
 The proxy expects HTTP Basic Auth on every API request (except `/health` and `/rest/api/2/serverInfo`).
 
-- **Username**: anything (ignored by the proxy, but DevLake requires a value)
+- **Username**: any value by default, or a specific username if `AUTH_USERNAME` is set
 - **Password**: your YouTrack permanent token
 
 The proxy extracts the token from the Basic Auth password field and forwards it as a `Bearer` token to YouTrack.
+
+If `AUTH_USERNAME` is set, the proxy rejects requests whose Basic Auth username does not match (HTTP 401). This lets you lock the proxy to a single known user. When unset or empty, any username is accepted (the previous default behavior).
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
+| `AUTH_USERNAME` | _(empty)_ | If set, only this Basic Auth username is accepted. Whitespace-only values are treated as empty. |
 | `PORT` | `8080` | Listen port |
 | `YOUTRACK_URL` | `https://example.youtrack.cloud` | YouTrack base URL |
 | `YT_MAX_CONCURRENCY` | `10` | Max parallel requests to YouTrack (1-100) |

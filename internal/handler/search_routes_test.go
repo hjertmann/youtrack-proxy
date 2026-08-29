@@ -41,7 +41,7 @@ func setupRouterWithMockYouTrack(t *testing.T, ytIssues []model.YTIssue) (*echo.
 	e := echo.New()
 
 	// v2 API group (matches main.go)
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 	api.GET("/search", func(c echo.Context) error {
 		return HandleSearchIssues(c, cfg, cache)
 	})
@@ -50,7 +50,7 @@ func setupRouterWithMockYouTrack(t *testing.T, ytIssues []model.YTIssue) (*echo.
 	})
 
 	// v3 API group (matches main.go)
-	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth())
+	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth(""))
 	apiv3.GET("/search/jql", func(c echo.Context) error {
 		return HandleSearchIssues(c, cfg, cache)
 	})

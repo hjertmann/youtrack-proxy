@@ -1,8 +1,11 @@
 package config
 
 import (
+	"os"
 	"testing"
 	"time"
+
+	"pgregory.net/rapid"
 )
 
 func TestLoadConfig_ConcurrencyDefaults(t *testing.T) {
@@ -104,4 +107,53 @@ func TestLoadConfig_ConcurrencyInvalidValue(t *testing.T) {
 	if cfg.MaxConcurrency != 10 {
 		t.Errorf("MaxConcurrency = %d, want default 10 on invalid input", cfg.MaxConcurrency)
 	}
+}
+
+func TestLoadConfig_AuthUsername(t *testing.T) {
+	tests := []struct {
+		name   string
+		setEnv bool
+		envVal string
+		want   string
+	}{
+		{"set to mysecret", true, "mysecret", "mysecret"},
+		{"set to empty string", true, "", ""},
+		{"unset", false, "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setEnv {
+				t.Setenv("AUTH_USERNAME", tt.envVal)
+			} else {
+				t.Setenv("AUTH_USERNAME", "")
+			}
+
+			cfg, err := LoadConfig()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.AuthUsername != tt.want {
+				t.Errorf("AuthUsername = %q, want %q", cfg.AuthUsername, tt.want)
+			}
+		})
+	}
+}
+
+// Feature: auth-username-validation, Property 1: Whitespace-only AUTH_USERNAME is treated as empty
+// **Validates: Requirements 1.3**
+func TestLoadConfig_AuthUsernameWhitespace_Property(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		ws := rapid.StringMatching(`^\s+$`).Draw(rt, "whitespace-only")
+		os.Setenv("AUTH_USERNAME", ws)
+		defer os.Unsetenv("AUTH_USERNAME")
+
+		cfg, err := LoadConfig()
+		if err != nil {
+			rt.Fatal(err)
+		}
+		if cfg.AuthUsername != "" {
+			rt.Errorf("AuthUsername = %q, want empty for whitespace-only input %q", cfg.AuthUsername, ws)
+		}
+	})
 }
