@@ -494,7 +494,7 @@ func TestSearchResponseParity_AllThreePaths(t *testing.T) {
 
 	// Set up a full Echo instance with the three search routes and auth middleware
 	e := echo.New()
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 	api.GET("/search", func(c echo.Context) error {
 		return HandleSearchIssues(c, cfg, testCache())
 	})
@@ -502,7 +502,7 @@ func TestSearchResponseParity_AllThreePaths(t *testing.T) {
 		return HandleSearchIssues(c, cfg, testCache())
 	})
 
-	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth())
+	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth(""))
 	apiv3.GET("/search/jql", func(c echo.Context) error {
 		return HandleSearchIssues(c, cfg, testCache())
 	})

@@ -20,7 +20,7 @@ import (
 func setupRouterWithCurrentRoutes(cfg *config.Config) *echo.Echo {
 	e := echo.New()
 
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 
 	// Users — mirrors main.go routes including the /user route
 	api.GET("/myself", func(c echo.Context) error {

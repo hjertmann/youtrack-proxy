@@ -4,6 +4,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type Config struct {
 	MaxConcurrency int           // YT_MAX_CONCURRENCY, default 10, range [1, 100]
 	QueueTimeout   time.Duration // YT_QUEUE_TIMEOUT_SECONDS, default 30s, range [1s, 300s]
 	RequestTimeout time.Duration // YT_REQUEST_TIMEOUT_SECONDS, default 30s, range [1s, 300s]
+	AuthUsername   string        // AUTH_USERNAME, default "", trimmed of whitespace
 }
 
 // LoadConfig reads environment variables and returns a populated Config.
@@ -24,6 +26,7 @@ func LoadConfig() (*Config, error) {
 		MaxConcurrency: envIntClamped("YT_MAX_CONCURRENCY", 10, 1, 100),
 		QueueTimeout:   time.Duration(envIntClamped("YT_QUEUE_TIMEOUT_SECONDS", 30, 1, 300)) * time.Second,
 		RequestTimeout: time.Duration(envIntClamped("YT_REQUEST_TIMEOUT_SECONDS", 30, 1, 300)) * time.Second,
+		AuthUsername:   strings.TrimSpace(os.Getenv("AUTH_USERNAME")),
 	}, nil
 }
 

@@ -127,7 +127,7 @@ func NewTestHarness() *TestHarness {
 	e.Any("/rest/api/3/serverInfo", handler.HandleServerInfo)
 
 	// All API routes share the auth middleware
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 
 	// Issue creation
 	api.POST("/issue", func(c echo.Context) error {
@@ -180,7 +180,7 @@ func NewTestHarness() *TestHarness {
 	api.GET("/filter/search", handler.HandleFilterSearch)
 
 	// v3 API group (mirrors v2 structure with BasicAuth)
-	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth())
+	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth(""))
 	apiv3.GET("/search/jql", func(c echo.Context) error {
 		return handler.HandleSearchIssues(c, cfg, resolvedCache)
 	})

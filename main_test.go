@@ -28,7 +28,7 @@ func setupRouter() *echo.Echo {
 	resolvedCache := service.NewResolvedStateCache(1 * time.Hour)
 
 	// v2 API group with auth
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 	api.GET("/search", func(c echo.Context) error {
 		return handler.HandleSearchIssues(c, cfg, resolvedCache)
 	})
@@ -37,7 +37,7 @@ func setupRouter() *echo.Echo {
 	})
 
 	// v3 API group with auth
-	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth())
+	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth(""))
 	apiv3.GET("/search/jql", func(c echo.Context) error {
 		return handler.HandleSearchIssues(c, cfg, resolvedCache)
 	})
@@ -55,7 +55,7 @@ func setupProjectRouter(youtrackURL string) *echo.Echo {
 
 	cfg := &config.Config{YouTrackURL: youtrackURL}
 
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 
 	// Projects — same registration order as main.go (WITH /project/recent route)
 	api.GET("/project", func(c echo.Context) error {

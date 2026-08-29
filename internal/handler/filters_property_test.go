@@ -32,7 +32,7 @@ func setupFilterSearchRouter() *echo.Echo {
 	e.HideBanner = true
 	e.HidePort = true
 
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 	api.GET("/filter/search", HandleFilterSearch)
 
 	return e
@@ -104,7 +104,7 @@ func setupFilterSearchRouterWithRoute() *echo.Echo {
 	e.HideBanner = true
 	e.HidePort = true
 
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 	api.GET("/filter/search", func(c echo.Context) error {
 		// Minimal stub that returns 200 — the point is to test auth enforcement.
 		return c.JSON(http.StatusOK, map[string]interface{}{

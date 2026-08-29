@@ -21,7 +21,7 @@ func setupRouterWithSearchRoutes(cfg *config.Config) *echo.Echo {
 	e := echo.New()
 	cache := testCache()
 
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 	api.GET("/search", func(c echo.Context) error {
 		return HandleSearchIssues(c, cfg, cache)
 	})
@@ -29,7 +29,7 @@ func setupRouterWithSearchRoutes(cfg *config.Config) *echo.Echo {
 		return HandleSearchIssues(c, cfg, cache)
 	})
 
-	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth())
+	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth(""))
 	apiv3.GET("/search/jql", func(c echo.Context) error {
 		return HandleSearchIssues(c, cfg, cache)
 	})

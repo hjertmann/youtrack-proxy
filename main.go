@@ -45,7 +45,7 @@ func main() {
 	e.GET("/rest/api/3/serverInfo", handler.HandleServerInfo)
 
 	// Jira REST API v2 — all routes require Basic Auth
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(cfg.AuthUsername))
 
 	api.POST("/issue", func(c echo.Context) error {
 		return handler.HandleCreateIssue(c, cfg)
@@ -116,7 +116,7 @@ func main() {
 	})
 
 	// Agile API (synthetic boards)
-	agile := e.Group("/rest/agile/1.0", authmw.BasicAuth())
+	agile := e.Group("/rest/agile/1.0", authmw.BasicAuth(cfg.AuthUsername))
 	agile.GET("/board", func(c echo.Context) error {
 		return handler.HandleListBoards(c, cfg)
 	})
@@ -128,7 +128,7 @@ func main() {
 	})
 
 	// v3 API (mirrors v2 search)
-	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth())
+	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth(cfg.AuthUsername))
 	apiv3.GET("/search/jql", func(c echo.Context) error {
 		return handler.HandleSearchIssues(c, cfg, resolvedCache)
 	})

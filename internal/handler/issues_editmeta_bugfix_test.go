@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
 	"github.com/hjertmann/youtrack-proxy/internal/config"
 	authmw "github.com/hjertmann/youtrack-proxy/internal/middleware"
 	"github.com/hjertmann/youtrack-proxy/internal/model"
 	"github.com/hjertmann/youtrack-proxy/internal/service"
+	"github.com/labstack/echo/v4"
 	"pgregory.net/rapid"
 )
 
@@ -28,7 +28,7 @@ func setupEditmetaRouter(cfg *config.Config) *echo.Echo {
 	e.HidePort = true
 
 	resolvedCache := service.NewResolvedStateCache(1 * time.Hour)
-	api := e.Group("/rest/api/2", authmw.BasicAuth())
+	api := e.Group("/rest/api/2", authmw.BasicAuth(""))
 
 	// Issue creation
 	api.POST("/issue", func(c echo.Context) error {

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/subtle"
 	"encoding/base64"
 	"net/http"
 	"strings"
@@ -16,7 +17,7 @@ const RequestContextKey = "requestCtx"
 // BasicAuth returns an Echo middleware that extracts Basic Auth credentials,
 // validates the format, and stores a model.RequestContext on the echo context.
 // The YouTrack bearer token is taken from the Basic Auth password field.
-func BasicAuth() echo.MiddlewareFunc {
+func BasicAuth(expectedUsername string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			auth := c.Request().Header.Get("Authorization")
@@ -45,6 +46,12 @@ func BasicAuth() echo.MiddlewareFunc {
 			if token == "" {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
 					"error": "Token is required in Basic Auth password field",
+				})
+			}
+
+			if expectedUsername != "" && subtle.ConstantTimeCompare([]byte(credentials[0]), []byte(expectedUsername)) == 0 {
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Username is not authorized",
 				})
 			}
 
