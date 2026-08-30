@@ -13,6 +13,25 @@ DevLake Jira Plugin  ──HTTP──▶  youtrack-proxy  ──HTTP──▶  Y
 
 ## Quick Start
 
+### Run the published image (GHCR)
+
+Prebuilt images are published to the GitHub Container Registry on every push to `main` and on version tags.
+
+```sh
+docker run -p 8080:8080 \
+  -e YOUTRACK_URL=https://your-instance.youtrack.cloud \
+  ghcr.io/hjertmann/youtrack-proxy:latest
+```
+
+Available tags:
+
+- `latest` — tracks the current `main` HEAD
+- `YYYY.MM.DD` (e.g. `2026.08.30`) — automatic CalVer datestamp, published on every `main` build
+- `<major>.<minor>.<patch>` (e.g. `1.2.3`), plus `<major>.<minor>` and `<major>` — published from `v*` git tags (optional, for explicit releases)
+- `sha-<short-sha>` — immutable, one per commit; use this to pin an exact build
+
+See [Environment Variables](#environment-variables) for all configuration options.
+
 ### Docker Compose (recommended)
 
 ```sh
@@ -151,6 +170,37 @@ When creating issues (`POST /rest/api/2/issue`), the proxy fetches the target pr
 - Webhooks
 - Issue updates (PUT/PATCH) and deletions
 - Jira Cloud (accountId-based) authentication
+
+## Releasing
+
+Images are published automatically by the CI workflow (`.github/workflows/build-and-push.yml`); you never push images by hand.
+
+**On every merge to `main`**, CI builds and pushes:
+
+- `latest` — updated to the new `main` HEAD
+- `YYYY.MM.DD` — an automatic CalVer datestamp (UTC) of the build
+- `sha-<short-sha>` — immutable, pinned to that exact commit
+
+This gives you an automatic, human-readable version on every build with no manual step. Two builds on the same day reuse the same datestamp tag; use `sha-<short-sha>` when you need to pin an exact commit.
+
+**To cut an explicit semver release** (optional — only needed when you want a compatibility-versioned tag), push a semver git tag (`vMAJOR.MINOR.PATCH`). CI derives the image version from the tag:
+
+```sh
+git checkout main
+git pull
+
+# tag a commit that is already on main and passing CI
+git tag -a v1.2.3 -m "Release v1.2.3"
+git push origin v1.2.3
+```
+
+A tag of `v1.2.3` produces the image tags `1.2.3`, `1.2`, and `1` (plus the usual `sha-<short-sha>`). The `1.2` and `1` tags roll forward to the newest matching release, so consumers can pin to whatever precision they want.
+
+Notes:
+
+- The tag **must** be valid semver (`v1.2.3`), or CI only emits a `sha-` tag — no version tags.
+- The version image is built from the tagged commit's tree, independent of where `main` has moved since.
+- This publishes the container image only. To also create a GitHub Release with notes: `gh release create v1.2.3 --generate-notes`.
 
 ## License
 

@@ -6,6 +6,10 @@ services:
     environment:
       PORT: "8080"
       YOUTRACK_URL: "${YOUTRACK_URL:-https://example.youtrack.cloud}"
+      AUTH_USERNAME: "${AUTH_USERNAME:-}"
+      YT_MAX_CONCURRENCY: "${YT_MAX_CONCURRENCY:-10}"
+      YT_QUEUE_TIMEOUT_SECONDS: "${YT_QUEUE_TIMEOUT_SECONDS:-30}"
+      YT_REQUEST_TIMEOUT_SECONDS: "${YT_REQUEST_TIMEOUT_SECONDS:-30}"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]

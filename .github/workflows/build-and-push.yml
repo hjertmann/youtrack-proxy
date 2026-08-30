@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25'
 
       - run: go build -v ./...
 
@@ -42,12 +42,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value={{date 'YYYY.MM.DD'}},enable={{is_default_branch}}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha
+            type=sha,prefix=sha-,format=short
 
       - name: Build and push
         if: github.event_name != 'pull_request'

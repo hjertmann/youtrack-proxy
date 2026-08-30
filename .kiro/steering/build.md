@@ -67,6 +67,7 @@ GitHub Actions workflow (`.github/workflows/build-and-push.yml`) runs on push to
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `AUTH_USERNAME` | _(empty)_ | If set, only this Basic Auth username is accepted (HTTP 401 otherwise). Whitespace-only values are treated as empty. |
 | `PORT` | `8080` | Server listen port |
 | `YOUTRACK_URL` | `https://example.youtrack.cloud` | YouTrack instance base URL |
 | `YT_MAX_CONCURRENCY` | `10` | Max concurrent outbound requests to YouTrack (range 1–100) |
