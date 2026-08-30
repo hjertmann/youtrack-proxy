@@ -15,10 +15,13 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - uses: actions/setup-go@v6
         with:
@@ -27,6 +30,20 @@ jobs:
       - run: go build -v ./...
 
       - run: go test -v ./...
+
+      # Compute a per-day CalVer with a zero-padded, auto-incrementing counter:
+      # v2026.08.30.01, v2026.08.30.02, ... The counter is the number of existing
+      # tags for today's date + 1. Only runs for pushes to the default branch.
+      - name: Compute CalVer version
+        id: calver
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        run: |
+          date="$(date -u +'%Y.%m.%d')"
+          count="$(git tag -l "v${date}.*" | wc -l | tr -d ' ')"
+          seq="$(printf '%02d' "$((count + 1))")"
+          version="${date}.${seq}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Computed version: v${version}"
 
       - name: Registry login
         if: github.event_name != 'pull_request'
@@ -43,7 +60,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value={{date 'YYYY.MM.DD'}},enable={{is_default_branch}}
+            type=raw,value=${{ steps.calver.outputs.version }},enable=${{ steps.calver.outputs.version != '' }}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
@@ -59,3 +76,15 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # Create the matching git tag + GitHub Release. The tag name (v<version>)
+      # mirrors the CalVer Docker image tag exactly.
+      - name: Create Release
+        if: steps.calver.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.calver.outputs.version }}" \
+            --target "${{ github.sha }}" \
+            --title "v${{ steps.calver.outputs.version }}" \
+            --generate-notes
