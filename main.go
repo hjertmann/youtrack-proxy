@@ -37,15 +37,15 @@ func main() {
 
 	// Health probe — no auth, no YouTrack call.
 	e.GET("/health", func(c echo.Context) error {
+		c.Response().Header().Set("Cache-Control", "no-cache")
 		return c.String(http.StatusOK, "OK")
 	})
 
-	// Server discovery (no auth)
-	e.GET("/rest/api/2/serverInfo", handler.HandleServerInfo)
-	e.GET("/rest/api/3/serverInfo", handler.HandleServerInfo)
-
 	// Jira REST API v2 — all routes require Basic Auth
 	api := e.Group("/rest/api/2", authmw.BasicAuth(cfg.AuthUsername))
+
+	// Server discovery
+	api.GET("/serverInfo", handler.HandleServerInfo)
 
 	api.POST("/issue", func(c echo.Context) error {
 		return handler.HandleCreateIssue(c, cfg)
@@ -129,6 +129,7 @@ func main() {
 
 	// v3 API (mirrors v2 search)
 	apiv3 := e.Group("/rest/api/3", authmw.BasicAuth(cfg.AuthUsername))
+	apiv3.GET("/serverInfo", handler.HandleServerInfo)
 	apiv3.GET("/search/jql", func(c echo.Context) error {
 		return handler.HandleSearchIssues(c, cfg, resolvedCache)
 	})
