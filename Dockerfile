@@ -1,9 +1,13 @@
-FROM golang:1.25-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build
+ARG TARGETOS
+ARG TARGETARCH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server .
+# Cross-compile rather than emulate: the binary is pure Go (CGO_ENABLED=0), so
+# the build always runs natively on BUILDPLATFORM and just retargets the output.
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /app/server .
 
 FROM scratch
 LABEL org.opencontainers.image.source="https://github.com/hjertmann/youtrack-proxy"
