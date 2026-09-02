@@ -11,6 +11,13 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+concurrency:
+  # Serialize release-producing runs so one run's CalVer counter read and
+  # tag/release creation never overlap another's. Queued runs still execute
+  # (no cancel), so each reads a fresh tag count after the prior run's tag exists.
+  group: calver-release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   ci:
     runs-on: ubuntu-latest
