@@ -1,6 +1,6 @@
 # Pinned to an immutable multi-arch manifest digest (golang:1.25-alpine,
 # 1.25.14-alpine3.24). Renovate/Dependabot can bump the digest+comment together.
-FROM --platform=$BUILDPLATFORM golang:1.25-alpine@sha256:1ae0735f00daffa3aaf1363a5184c0d2dc55c78e3db4ec70241cdac97bf84b59 AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine@sha256:26402d86be3d72e6a9410afa0108f03529f51f0c1b5eb7f503d0bc44cc7857ac AS build
 ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
