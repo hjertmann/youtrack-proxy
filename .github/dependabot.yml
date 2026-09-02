@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # GitHub Actions are pinned to commit SHAs; Dependabot bumps both the SHA
+  # and the trailing "# vX.Y.Z" comment.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  # golang:1.25-alpine is pinned to a digest; Dependabot bumps the digest and
+  # its comment. (Go module security updates are handled separately.)
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  # go.mod / go.sum. Security updates are already enabled at the repo level;
+  # this adds routine version bumps too.
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      go-modules:
+        patterns: ['*']
