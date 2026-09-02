@@ -74,3 +74,24 @@ Used throughout handlers, service converters, boards, and filters. When encoding
 4. Add the handler in `internal/handler/` — use the existing file for that resource area or create a new one.
 5. Register the route in `main.go` under the appropriate API group.
 6. If the endpoint returns Jira-style numeric IDs, use `idmap.Encode` / `idmap.Decode`.
+7. Update `README.md` if the endpoint is user-facing (see Documentation below).
+
+## Documentation
+
+Keep `README.md` in sync whenever a change alters observable behavior for someone running or integrating with the proxy. Treat this as part of "done" for the change, not a follow-up.
+
+Update the README when you:
+
+- Add, remove, or rename an endpoint (update the API Surface and/or Stubs tables).
+- Change which endpoints require authentication, or the auth mechanism itself.
+- Add, remove, or change the meaning/default of an environment variable.
+- Change a user-visible response shape, status mapping, or ID-encoding behavior.
+- Change the health check or any other operator-facing contract.
+
+Do NOT touch the README for internal-only changes that a user never observes, for example:
+
+- Version pinning, dependency bumps, or `go.mod` housekeeping.
+- CI/release mechanics (tag schemes, workflow concurrency, build caching).
+- Refactors, test additions, or internal helper changes with no behavior change.
+
+Rule of thumb: if a user would have to change how they call, configure, or operate the proxy, it belongs in the README. If it only affects how we build or ship it, it does not.

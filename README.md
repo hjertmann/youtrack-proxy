@@ -51,7 +51,7 @@ The proxy listens on `http://localhost:8080`. Point DevLake's Jira connection at
 
 ### Authentication
 
-The proxy expects HTTP Basic Auth on every API request (except `/health` and `/rest/api/2/serverInfo`).
+The proxy expects HTTP Basic Auth on **every endpoint except `/health`**. This includes `/rest/api/2/serverInfo` and every other `/rest/...` route across the v2, v3, and Agile API groups — they all sit behind the Basic Auth middleware and return HTTP 401 without valid credentials.
 
 - **Username**: any value by default, or a specific username if `AUTH_USERNAME` is set
 - **Password**: your YouTrack permanent token
@@ -59,6 +59,17 @@ The proxy expects HTTP Basic Auth on every API request (except `/health` and `/r
 The proxy extracts the token from the Basic Auth password field and forwards it as a `Bearer` token to YouTrack.
 
 If `AUTH_USERNAME` is set, the proxy rejects requests whose Basic Auth username does not match (HTTP 401). This lets you lock the proxy to a single known user. When unset or empty, any username is accepted (the previous default behavior).
+
+The only unauthenticated route is the health check below.
+
+### Health Check
+
+`GET /health` is the sole endpoint that requires no authentication and makes no YouTrack call. It returns `200 OK` with the plain-text body `OK` and a `Cache-Control: no-cache` header, so it is safe to use as a liveness/readiness probe (Docker healthcheck, Kubernetes probe, load-balancer check).
+
+```sh
+curl http://localhost:8080/health
+# => OK
+```
 
 ## Environment Variables
 
@@ -129,7 +140,7 @@ When creating issues (`POST /rest/api/2/issue`), the proxy fetches the target pr
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/rest/api/2/serverInfo` | Server discovery (no auth) |
+| GET | `/rest/api/2/serverInfo` | Server discovery (requires auth) |
 | GET | `/rest/api/2/search` | Issue search with JQL translation |
 | GET | `/rest/api/2/search/jql` | Same as above (alternate path) |
 | GET | `/rest/api/3/search/jql` | v3 variant of search |
@@ -158,7 +169,6 @@ When creating issues (`POST /rest/api/2/issue`), the proxy fetches the target pr
 | GET | `/rest/api/2/issue/:id/remotelink` |
 | GET | `/rest/api/2/filter/search` |
 | GET | `/rest/api/2/project/recent` |
-| GET | `/health` |
 
 ## Not Supported
 
