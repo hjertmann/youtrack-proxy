@@ -1,11 +1,11 @@
 module github.com/hjertmann/youtrack-proxy
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/labstack/echo/v4 v4.15.4
 	github.com/rs/zerolog v1.35.1
-	golang.org/x/sync v0.22.0
+	golang.org/x/sync v0.23.0
 	pgregory.net/rapid v1.3.0
 )
 
