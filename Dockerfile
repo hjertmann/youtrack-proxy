@@ -1,5 +1,5 @@
-# Pinned to an immutable multi-arch manifest digest (golang:1.25-alpine,
-# 1.25.14-alpine3.24). Renovate/Dependabot can bump the digest+comment together.
+# Pinned to an immutable multi-arch manifest digest (golang:1.27-alpine).
+# Renovate/Dependabot can bump the digest+comment together.
 FROM --platform=$BUILDPLATFORM golang:1.27-alpine@sha256:cf6fca6641884b8433441b2b0652976f975e1d0fdd26d177eaaf8596087f3125 AS build
 ARG TARGETOS
 ARG TARGETARCH
