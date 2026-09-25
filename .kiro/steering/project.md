@@ -20,7 +20,7 @@ main.go       - Server bootstrap, route registration, concurrency init
 
 ## Tech Stack
 
-- **Language**: Go 1.25+
+- **Language**: Go 1.26+
 - **HTTP Framework**: Echo v4 (`github.com/labstack/echo/v4`)
 - **Logging**: zerolog (`github.com/rs/zerolog`)
 - **Concurrency**: `golang.org/x/sync/semaphore` (bounded outbound request concurrency)
