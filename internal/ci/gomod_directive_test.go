@@ -8,6 +8,8 @@ package ci
 import (
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -47,6 +49,33 @@ func readGoMod(t *testing.T) (goDirective, xsyncVersion string) {
 	return dm[1], xm[1]
 }
 
+// xsyncFloor is the lowest golang.org/x/sync version the bump settled on. Later
+// upgrades are fine; going back below it is a revert.
+const xsyncFloor = "v0.23.0"
+
+// versionAtLeast reports whether the semver-ish version v (e.g. "v0.24.0") is
+// greater than or equal to floor, comparing the numeric major.minor.patch parts.
+func versionAtLeast(v, floor string) bool {
+	parse := func(s string) [3]int {
+		var out [3]int
+		s = strings.TrimPrefix(s, "v")
+		if i := strings.IndexAny(s, "-+"); i != -1 {
+			s = s[:i]
+		}
+		for i, part := range strings.SplitN(s, ".", 3) {
+			out[i], _ = strconv.Atoi(part)
+		}
+		return out
+	}
+	a, b := parse(v), parse(floor)
+	for i := range a {
+		if a[i] != b[i] {
+			return a[i] > b[i]
+		}
+	}
+	return true
+}
+
 // Feature: xsync-bump-go-directive-fix, Property 1: Expected Behavior
 //
 // TestGoDirectiveAcceptsXsyncFloor encodes the ACCEPTED end state. golang.org/x/sync
@@ -60,9 +89,9 @@ func readGoMod(t *testing.T) (goDirective, xsyncVersion string) {
 func TestGoDirectiveAcceptsXsyncFloor(t *testing.T) {
 	goDirective, xsyncVersion := readGoMod(t)
 
-	// x/sync must be the bumped v0.23.0 — the upgrade is kept, not reverted.
-	if xsyncVersion != "v0.23.0" {
-		t.Fatalf("golang.org/x/sync = %q, want %q (the bump must be kept)", xsyncVersion, "v0.23.0")
+	// x/sync must be at least the bumped v0.23.0 — the upgrade is kept, not reverted.
+	if !versionAtLeast(xsyncVersion, xsyncFloor) {
+		t.Fatalf("golang.org/x/sync = %q, want >= %q (the bump must be kept)", xsyncVersion, xsyncFloor)
 	}
 
 	// The `go` directive must be 1.26.0 — the floor x/sync v0.23.0 requires. A lower
@@ -82,8 +111,8 @@ func TestGoDirectiveAcceptsXsyncFloor(t *testing.T) {
 // **Validates: Requirements 3.2**
 func TestPreservation_XsyncBumpKept(t *testing.T) {
 	_, xsyncVersion := readGoMod(t)
-	if xsyncVersion != "v0.23.0" {
-		t.Fatalf("golang.org/x/sync = %q, want %q (the bump must be preserved, not reverted)", xsyncVersion, "v0.23.0")
+	if !versionAtLeast(xsyncVersion, xsyncFloor) {
+		t.Fatalf("golang.org/x/sync = %q, want >= %q (the bump must be preserved, not reverted)", xsyncVersion, xsyncFloor)
 	}
 }
 
