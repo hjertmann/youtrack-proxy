@@ -26,12 +26,15 @@ func genHost(t *rapid.T) string {
 }
 
 // pickerEchoContext creates an Echo context with the given scheme and host.
-// Echo's c.Scheme() reads X-Forwarded-Proto, so we set that header.
+// Echo's c.Scheme() reads X-Forwarded-Proto, so we set that header. Since echo
+// v4.16.0 the header is only honoured from a trusted (loopback/private) peer, and
+// httptest's default RemoteAddr (192.0.2.1) is not one, so we set a private address.
 func pickerEchoContext(scheme, host, path string) (echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("http://%s%s", host, path), nil)
 	req.Header.Set("X-Forwarded-Proto", scheme)
 	req.Host = host
+	req.RemoteAddr = "10.0.0.1:1234"
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	return c, rec
