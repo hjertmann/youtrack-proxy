@@ -8,6 +8,8 @@ package ci
 import (
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -54,36 +56,76 @@ func readGoMod(t *testing.T) (goDirective, xsyncVersion string) {
 // from being below any dependency's — so `go 1.25.0` + x/sync v0.23.0 cannot build on
 // any toolchain. The fix therefore accepts the 1.26.0 floor (rather than trying to pin
 // back to 1.25.0) and bumps the CI/build toolchain to Go 1.26. This asserts both: the
-// `go` directive is 1.26.0 and x/sync is kept at v0.23.0.
+// `go` directive is 1.26.0 and x/sync is kept at or above the bumped version (v0.23.0
+// at the time of the original fix; the October 2026 dependency upgrade moved it to
+// v0.24.0, which declares the same `go 1.26.0` floor).
 //
 // **Validates: Requirements 2.1, 2.2**
 func TestGoDirectiveAcceptsXsyncFloor(t *testing.T) {
 	goDirective, xsyncVersion := readGoMod(t)
 
-	// x/sync must be the bumped v0.23.0 — the upgrade is kept, not reverted.
-	if xsyncVersion != "v0.23.0" {
-		t.Fatalf("golang.org/x/sync = %q, want %q (the bump must be kept)", xsyncVersion, "v0.23.0")
+	// x/sync must be kept at or above the bumped v0.23.0 — the upgrade is kept,
+	// not reverted. The floor is a minimum, not an exact pin, so later bumps
+	// (e.g. v0.24.0) still satisfy the contract.
+	const floor = "v0.23.0"
+	if !semverAtLeast(xsyncVersion, floor) {
+		t.Fatalf("golang.org/x/sync = %q, want >= %q (the bump must be kept)", xsyncVersion, floor)
 	}
 
-	// The `go` directive must be 1.26.0 — the floor x/sync v0.23.0 requires. A lower
-	// directive would be rejected by the toolchain given this dependency.
+	// The `go` directive must be 1.26.0 — the floor x/sync v0.23.0 and v0.24.0
+	// both require. A lower directive would be rejected by the toolchain given
+	// this dependency.
 	if goDirective != "1.26.0" {
 		t.Fatalf("go directive = %q, want %q (x/sync %s requires go >= 1.26.0)",
 			goDirective, "1.26.0", xsyncVersion)
 	}
 }
 
+// semverAtLeast reports whether v (e.g. "v0.24.0") is at or above floor
+// (e.g. "v0.23.0"), comparing the major/minor/patch components numerically.
+// It returns false for versions it cannot parse.
+func semverAtLeast(v, floor string) bool {
+	parse := func(s string) ([3]int, bool) {
+		var parts [3]int
+		s = strings.TrimPrefix(s, "v")
+		fields := strings.Split(s, ".")
+		if len(fields) == 0 || len(fields) > 3 {
+			return parts, false
+		}
+		for i, f := range fields {
+			n, err := strconv.Atoi(f)
+			if err != nil {
+				return parts, false
+			}
+			parts[i] = n
+		}
+		return parts, true
+	}
+	vp, okV := parse(v)
+	fp, okF := parse(floor)
+	if !okV || !okF {
+		return false
+	}
+	for i := 0; i < 3; i++ {
+		if vp[i] != fp[i] {
+			return vp[i] > fp[i]
+		}
+	}
+	return true
+}
+
 // Feature: xsync-bump-go-directive-fix, Property 2: Preservation
 //
 // TestPreservation_XsyncBumpKept asserts the observed baseline that the fix must
-// preserve: the x/sync require line is v0.23.0. Accepting the 1.26.0 floor must NOT
-// revert the dependency upgrade.
+// preserve: the x/sync require line stays at or above the bumped v0.23.0. Accepting
+// the 1.26.0 floor must NOT revert the dependency upgrade (later bumps, such as the
+// v0.24.0 from the October 2026 upgrade, are equally preserved).
 //
 // **Validates: Requirements 3.2**
 func TestPreservation_XsyncBumpKept(t *testing.T) {
 	_, xsyncVersion := readGoMod(t)
-	if xsyncVersion != "v0.23.0" {
-		t.Fatalf("golang.org/x/sync = %q, want %q (the bump must be preserved, not reverted)", xsyncVersion, "v0.23.0")
+	if !semverAtLeast(xsyncVersion, "v0.23.0") {
+		t.Fatalf("golang.org/x/sync = %q, want >= %q (the bump must be preserved, not reverted)", xsyncVersion, "v0.23.0")
 	}
 }
 

@@ -26,12 +26,16 @@ func genHost(t *rapid.T) string {
 }
 
 // pickerEchoContext creates an Echo context with the given scheme and host.
-// Echo's c.Scheme() reads X-Forwarded-Proto, so we set that header.
+// Echo's c.Scheme() reads X-Forwarded-Proto only from trusted peers (loopback,
+// link-local or private addresses) — the default since echo v4.16.0 — so we set
+// that header and make the request come from a loopback address, as it would
+// from a reverse proxy on the same host.
 func pickerEchoContext(scheme, host, path string) (echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("http://%s%s", host, path), nil)
 	req.Header.Set("X-Forwarded-Proto", scheme)
 	req.Host = host
+	req.RemoteAddr = "127.0.0.1:1234"
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	return c, rec
